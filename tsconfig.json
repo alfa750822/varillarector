@@ -1,7 +1,9 @@
-{
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
-}
+src/
+├── App.tsx
+├── components/
+│   ├── ui/
+│   │   └── input.tsx   <-- (Este es el archivo crítico que faltaba)
+│   ├── VarillaTable.tsx
+│   └── SummaryCard.tsx
+└── utils/
+    └── const.ts
