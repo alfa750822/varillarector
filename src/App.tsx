@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { VARILLAS } from "./utils/const";
 import EntryForm from "./components/EntryForm";
 import EntryList, { Entry } from "./components/EntryList";
@@ -33,6 +33,46 @@ function App() {
 
   const handlePrint = () => {
     window.print();
+    setEntries([]);
+    setNextLoteNumber(1);
+  };
+
+  const handleExportCSV = () => {
+    // Definir encabezados del CSV
+    const headers = ["Lote", "Varilla", "Diametro (pulg)", "Cantidad", "Peso (kg)"];
+    
+    // Mapear las entradas a filas de texto
+    // Usamos el orden original (cronológico) para el reporte, no el invertido de la vista
+    const rows = entries.map(entry => {
+      const varilla = VARILLAS[entry.varillaIndex];
+      return [
+        entry.lote,
+        varilla.no,
+        varilla.diamPulg,
+        entry.quantity,
+        entry.weight.toFixed(2)
+      ].join(",");
+    });
+
+    // Unir encabezados y filas
+    const csvContent = [headers.join(","), ...rows].join("\n");
+
+    // Crear un Blob con el contenido
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    
+    // Crear un enlace temporal para descargar
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    
+    // Nombre del archivo con fecha actual
+    const today = new Date().toISOString().split('T')[0];
+    link.setAttribute("download", `recepcion_varillas_${today}.csv`);
+    
+    // Simular clic y limpiar
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -56,7 +96,10 @@ function App() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <EntryList entries={entries} onDelete={handleDeleteEntry} />
+              <EntryList 
+                entries={entries.slice().reverse()} 
+                onDelete={handleDeleteEntry} 
+              />
             </CardContent>
           </Card>
 
@@ -64,10 +107,27 @@ function App() {
           <SummaryCard entries={entries} />
         </div>
 
-        <div className="flex justify-center no-print">
-          <Button onClick={handlePrint} size="lg" className="gap-2" disabled={entries.length === 0}>
+        {/* Botones de Acción */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4 no-print">
+          <Button 
+            onClick={handleExportCSV} 
+            variant="outline" 
+            size="lg" 
+            className="gap-2" 
+            disabled={entries.length === 0}
+          >
+            <FileText className="h-5 w-5" />
+            Exportar CSV
+          </Button>
+          
+          <Button 
+            onClick={handlePrint} 
+            size="lg" 
+            className="gap-2" 
+            disabled={entries.length === 0}
+          >
             <Download className="h-5 w-5" />
-            Imprimir Recibo
+            Imprimir y Reiniciar
           </Button>
         </div>
       </div>
