@@ -3,12 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-white text-slate-900;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
   }
 }
 
@@ -16,16 +13,16 @@
   body * {
     visibility: hidden;
   }
-  
-  .print-only, .print-only * {
+  #receipt, #receipt * {
     visibility: visible;
   }
-  
+  #receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
   button {
     display: none !important;
-  }
-  
-  @page {
-    margin: 1cm;
   }
 }
