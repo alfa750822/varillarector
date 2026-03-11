@@ -1,65 +1,74 @@
 import { useState } from "react";
-import { LoteForm } from "./components/LoteForm";
-import { LoteList } from "./components/LoteList";
-import { exportToCSV } from "./utils/exportCSV";
-import { Lote } from "./types";
+import { Button } from "./components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
+import { Download } from "lucide-react";
+import { VARILLAS } from "./utils/const";
+import EntryForm from "./components/EntryForm";
+import EntryList, { Entry } from "./components/EntryList";
+import SummaryCard from "./components/SummaryCard";
 
 function App() {
-  const [lotes, setLotes] = useState<Lote[]>([]);
+  const [entries, setEntries] = useState<Entry[]>([]);
   const [nextLoteNumber, setNextLoteNumber] = useState(1);
-  const [selectedVarilla, setSelectedVarilla] = useState<string>("");
 
-  const handleAddLote = (nuevoLote: Lote) => {
-    setLotes([...lotes, nuevoLote]);
+  const handleAddEntry = (varillaIndex: number, quantity: number) => {
+    const varilla = VARILLAS[varillaIndex];
+    const weight = quantity * varilla.pesoUnitario * varilla.longitud;
+
+    const newEntry: Entry = {
+      id: Date.now().toString(),
+      lote: nextLoteNumber,
+      varillaIndex,
+      quantity,
+      weight,
+    };
+
+    setEntries([...entries, newEntry]);
     setNextLoteNumber(nextLoteNumber + 1);
   };
 
-  const handleDeleteLote = (id: number) => {
-    setLotes(lotes.filter(lote => lote.id !== id));
+  const handleDeleteEntry = (id: string) => {
+    setEntries(entries.filter((entry) => entry.id !== id));
   };
 
-  const handleExportCSV = () => {
-    exportToCSV(lotes);
-    // Limpiar selección de varilla solo al exportar
-    setSelectedVarilla("");
+  const handlePrint = () => {
+    window.print();
   };
-
-  // Ordenar lotes: el último agregado aparece primero
-  const sortedLotes = [...lotes].reverse();
 
   return (
-    <div className="min-h-screen bg-white py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">VarillaReceptor</h1>
-          <p className="text-slate-600">Sistema de Recepción de Varillas por Lotes</p>
+    <div className="min-h-screen bg-slate-50 py-8 px-4">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-slate-900">VarillaReceptor</h1>
+          <p className="text-slate-600">Sistema de Recepción por Lotes</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Form Section */}
-          <div>
-            <LoteForm 
-              onAddLote={handleAddLote}
-              nextLoteNumber={nextLoteNumber}
-              selectedVarilla={selectedVarilla}
-              onVarillaChange={setSelectedVarilla}
-            />
-          </div>
+        <div id="receipt" className="space-y-6">
+          {/* Formulario de Entrada */}
+          <EntryForm onAddEntry={handleAddEntry} />
 
-          {/* List Section */}
-          <div>
-            <LoteList 
-              lotes={sortedLotes}
-              onDeleteLote={handleDeleteLote}
-              onExportCSV={handleExportCSV}
-            />
-          </div>
+          {/* Lista de Lotes */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Detalle de Lotes</CardTitle>
+              <CardDescription>
+                Registro cronológico de recepción de material
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EntryList entries={entries} onDelete={handleDeleteEntry} />
+            </CardContent>
+          </Card>
+
+          {/* Resumen */}
+          <SummaryCard entries={entries} />
         </div>
 
-        {/* Footer */}
-        <div className="mt-12 text-center text-sm text-slate-500">
-          <p>© {new Date().getFullYear()} VarillaReceptor — Registro por Lotes</p>
+        <div className="flex justify-center no-print">
+          <Button onClick={handlePrint} size="lg" className="gap-2" disabled={entries.length === 0}>
+            <Download className="h-5 w-5" />
+            Imprimir Recibo
+          </Button>
         </div>
       </div>
     </div>
