@@ -13,7 +13,10 @@ function App() {
 
   const handleAddEntry = (varillaIndex: number, quantity: number) => {
     const varilla = VARILLAS[varillaIndex];
-    const weight = quantity * varilla.pesoUnitario * varilla.longitud;
+    
+    // CÁLCULO ACTUALIZADO: Basado en barras por tonelada redondeado
+    // Peso = (Cantidad * 1000kg) / BarrasPorTonRed
+    const weight = (quantity * 1000) / varilla.barrasPorTonRed;
 
     const newEntry: Entry = {
       id: Date.now().toString(),
@@ -38,11 +41,8 @@ function App() {
   };
 
   const handleExportCSV = () => {
-    // Definir encabezados del CSV
     const headers = ["Lote", "Varilla", "Diametro (pulg)", "Cantidad", "Peso (kg)"];
     
-    // Mapear las entradas a filas de texto
-    // Usamos el orden original (cronológico) para el reporte, no el invertido de la vista
     const rows = entries.map(entry => {
       const varilla = VARILLAS[entry.varillaIndex];
       return [
@@ -54,22 +54,16 @@ function App() {
       ].join(",");
     });
 
-    // Unir encabezados y filas
     const csvContent = [headers.join(","), ...rows].join("\n");
 
-    // Crear un Blob con el contenido
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    
-    // Crear un enlace temporal para descargar
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
     
-    // Nombre del archivo con fecha actual
     const today = new Date().toISOString().split('T')[0];
     link.setAttribute("download", `recepcion_varillas_${today}.csv`);
     
-    // Simular clic y limpiar
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -84,10 +78,8 @@ function App() {
         </div>
 
         <div id="receipt" className="space-y-6">
-          {/* Formulario de Entrada */}
           <EntryForm onAddEntry={handleAddEntry} />
 
-          {/* Lista de Lotes */}
           <Card>
             <CardHeader>
               <CardTitle>Detalle de Lotes</CardTitle>
@@ -103,11 +95,9 @@ function App() {
             </CardContent>
           </Card>
 
-          {/* Resumen */}
           <SummaryCard entries={entries} />
         </div>
 
-        {/* Botones de Acción */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 no-print">
           <Button 
             onClick={handleExportCSV} 
